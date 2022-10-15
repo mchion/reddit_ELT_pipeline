@@ -84,11 +84,11 @@ def timeline_chart():
             bigquery.ScalarQueryParameter("timeframe", "STRING", timeframe)
             ]
         )
-    dft1 = client.query(query_comment_timestamps, job_config = query_config).to_dataframe()
-    dft1['time'] = dft1['time'].dt.tz_localize('utc').dt.tz_convert(user_time_zone)
-    dft2 = dft1.resample('H',on='time').count()
+    df = client.query(query_comment_timestamps, job_config = query_config).to_dataframe()
+    df['time'] = df['time'].dt.tz_localize('utc').dt.tz_convert(user_time_zone)
+    df['count'] = 1
+    dft2 = df.resample('H',on='time').sum()
     dft2.index.rename('day_hour', inplace=True)
-    dft2.rename(columns={'time':'count'},inplace=True)
     dft2.reset_index(inplace=True)
     
     fig = px.bar(dft2,
