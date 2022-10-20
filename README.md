@@ -1,1 +1,1 @@
-# reddit_bigquery_streamlit
+# reddit_stream
