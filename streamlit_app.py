@@ -214,10 +214,10 @@ def analyze_wait_time():
             were added after this wait time.""")
     
     df_clean = df_new[['s_id','s_time','s_title','c_count', 'last_c_time']]
-    df_clean.rename(columns={'s_id':'Post ID','s_time':'Post Date','s_title': 'Post Title',
+    df_clean.rename(columns={'s_id':'Post ID','s_time':'Post Date','s_title': 'Post Title (truncated)',
                              'c_count': 'Comments', 'last_c_time': 'Last Comment Time'}, 
                     inplace=True)
-    df_clean['Post Title'] = df_clean['Post Title'].str[:60]
+    df_clean['Post Title (truncated)'] = df_clean['Post Title (truncated)'].str[:60]
     df_clean.reset_index(drop=True, inplace=True)
     df_clean["Post Date"] = df_clean["Post Date"].dt.strftime('%Y-%m-%d')
     df_clean["Last Comment Time"] = df_clean["Last Comment Time"].dt.strftime('%Y-%m-%d %X')
@@ -226,37 +226,48 @@ def analyze_wait_time():
     st.dataframe(df_clean, use_container_width = True)
     
     #st.markdown("<h4 style='text-align: center;'>Select a post index to see its time plot of comments: </h4>", unsafe_allow_html=True)
-    col1,col2,col3= st.columns([1,1,1])
+    col1,col2= st.columns([.35,1])
     with col1:
-        user_input = st.selectbox(
-            'Select a Post ID to see its plot:',
-            list(df_clean['Post ID']),
+        user_input_raw = st.selectbox(
+            'Select a Post ID to see more detail:',
+            list(df_clean.index.astype(str) + " - " + df_clean['Post ID']),
             label_visibility='visible'
             )
     
-    new1 = df_new[df_new['s_id']==user_input].loc[:,'time_diff'].iloc[0].to_frame()
-    new1.rename(columns={'Column_A': 'time_diff'},inplace=True)
-    new2 = pd.DataFrame(df_new[df_new['s_id']==user_input].loc[:,'c_time_list'].iloc[0],columns=['comment_time'])
-    new3 = pd.concat([new2,new1], axis=1)
-    new3['time_diff'].fillna(pd.Timedelta(seconds=0),inplace=True)
-    new3['hours_diff'] = new3['time_diff']/pd.Timedelta("1 hour")
+        user_input = user_input_raw.split(" - ")[1]
+        new1 = df_new[df_new['s_id']==user_input].loc[:,'time_diff'].iloc[0].to_frame()
+        new1.rename(columns={'Column_A': 'time_diff'},inplace=True)
+        new2 = pd.DataFrame(df_new[df_new['s_id']==user_input].loc[:,'c_time_list'].iloc[0],columns=['comment_time'])
+        new3 = pd.concat([new2,new1], axis=1)
+        new3['time_diff'].fillna(pd.Timedelta(seconds=0),inplace=True)
+        new3['hours_diff'] = new3['time_diff']/pd.Timedelta("1 hour")
 
-    fig2 = px.line(new3, 
-                x='comment_time',
-                y='hours_diff',
-                labels={
-                    "comment_time": "Comment Date",
-                    "hours_diff": "Hours since last comment"},
-                markers=True)
+        new_view = new3[['comment_time','hours_diff']]
+        new_view = new_view.rename(columns={'comment_time':'Comment Timestamp', 'hours_diff': 'Hours'})
+        new_view['Hours'] = new_view['Hours'].apply(lambda x: '{:,.2f}'.format(x))
+        new_view['Comment Timestamp'] = new_view['Comment Timestamp'].dt.strftime('%Y-%m-%d %X')
     
-    fig2.add_hline(y=option,
-                  line_width=1, 
-                  line_dash="dash", 
-                  line_color="red", 
-                  annotation_text=f"{option}hr threshold",
-                  annotation_position="bottom left")
+        st.dataframe(new_view, use_container_width = True)
+    with col2:
+        fig2 = px.line(new3, 
+                    x='comment_time',
+                    y='hours_diff',
+                    labels={
+                        "comment_time": "Comment Timestamp",
+                        "hours_diff": "Hours"},
+                    markers=True,
+                    title = f'Time plot for {user_input_raw}')
+        
+        fig2.update_layout(title_x=0.5)
+        
+        fig2.add_hline(y=option,
+                    line_width=1, 
+                    line_dash="dash", 
+                    line_color="red", 
+                    annotation_text=f"{option}hr threshold",
+                    annotation_position="bottom left")
 
-    st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True)
     
     st.markdown(f"""Perhaps another solution would be to use machine learning or do a time analysis on each individual post 
                 in order to predict when the last comment has been added. A data scientist or ML Engineer 
@@ -325,7 +336,7 @@ with st.sidebar:
         
         This is NOT a data science or machine learning project.
         
-        *All data on this dashboard is constantly being updated as new comments from the 
-        dataengineering subreddit are ingested to the database on an hourly basis.*
+        *All data on this dashboard is active and constantly changing based on new incoming data. 
+        New comments from the dataengineering subreddit are ingested to the database on an hourly basis.*
 
         """)
