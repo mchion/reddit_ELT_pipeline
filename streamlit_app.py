@@ -112,7 +112,7 @@ def timeline_chart():
 
 def analyze_wait_time():
     
-    st.markdown("<h4 style='text-align: center;'>How long after the last comment should we wait until we a consider a post <strong><em>done</strong></em> ?</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center;'>How long after the last comment should we wait until we a consider a post <strong>done</strong>?</h4>", unsafe_allow_html=True)
     
     col1,col2,col3 = st.columns([1,1,1])
     with col2:
@@ -226,17 +226,17 @@ def analyze_wait_time():
     st.dataframe(df_clean, use_container_width = True)
     
     #st.markdown("<h4 style='text-align: center;'>Select a post index to see its time plot of comments: </h4>", unsafe_allow_html=True)
-    col1,col2,col3,col4,col5= st.columns([1,1,1,1,1])
-    with col3:
+    col1,col2,col3= st.columns([1,1,1])
+    with col1:
         user_input = st.selectbox(
             'Select a Post ID to see its plot:',
             list(df_clean['Post ID']),
             label_visibility='visible'
             )
     
-    new1 = df_new[df_new['s_id']==user_input]['time_diff'].iloc[0].to_frame()
+    new1 = df_new[df_new['s_id']==user_input].loc[:,'time_diff'].iloc[0].to_frame()
     new1.rename(columns={'Column_A': 'time_diff'},inplace=True)
-    new2 = pd.DataFrame(df_new[df_new['s_id']==user_input]['c_time_list'].iloc[0],columns=['comment_time'])
+    new2 = pd.DataFrame(df_new[df_new['s_id']==user_input].loc[:,'c_time_list'].iloc[0],columns=['comment_time'])
     new3 = pd.concat([new2,new1], axis=1)
     new3['time_diff'].fillna(pd.Timedelta(seconds=0),inplace=True)
     new3['hours_diff'] = new3['time_diff']/pd.Timedelta("1 hour")
@@ -257,6 +257,10 @@ def analyze_wait_time():
                   annotation_position="bottom left")
 
     st.plotly_chart(fig2, use_container_width=True)
+    
+    st.markdown(f"""Perhaps another solution would be to use machine learning or do a time analysis on each individual post 
+                in order to predict when the last comment has been added. A data scientist or ML Engineer 
+                would need to investigate further.""")
     
 def most_recent_comments():
 
@@ -311,12 +315,17 @@ with st.sidebar:
         st.markdown(f'''Current Date/Time: \n 
                     {date_now}  {time_now}''')
     
-    st.button("Refresh app")
-    st.markdown('*Note: New comments ingested hourly*')
+    #st.button("Refresh app")
+    #st.markdown('*Note: New comments ingested hourly*')
     
     with st.expander("Click to learn more about this dashboard"):
         st.markdown(f"""
-        This dashboard is primarily focused on machine learning.
+        This dashboard is designed as a mock user endpoint for a data engineering project.
+        Details about the data engineering pipeline can be found at [here](https://github.com/mchion/reddit_serverless_stream).
         
-        *Report updated on {str(today)}.*  
+        This is NOT a data science or machine learning project.
+        
+        *All data on this dashboard is constantly being updated as new comments from the 
+        dataengineering subreddit are ingested to the database on an hourly basis.*
+
         """)
