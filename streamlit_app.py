@@ -243,11 +243,12 @@ def analyze_wait_time():
         new3['hours_diff'] = new3['time_diff']/pd.Timedelta("1 hour")
 
         new_view = new3[['comment_time','hours_diff']]
-        new_view = new_view.rename(columns={'comment_time':'Comment Timestamp', 'hours_diff': 'Hours'})
-        new_view['Hours'] = new_view['Hours'].apply(lambda x: '{:,.2f}'.format(x))
+        new_view = new_view.rename(columns={'comment_time':'Comment Timestamp', 'hours_diff': '*Hours'})
+        new_view['*Hours'] = new_view['*Hours'].apply(lambda x: '{:,.2f}'.format(x))
         new_view['Comment Timestamp'] = new_view['Comment Timestamp'].dt.strftime('%Y-%m-%d %X')
     
         st.dataframe(new_view, use_container_width = True)
+        st.markdown("<em>\*Hours since previous comment</em>", unsafe_allow_html=True )
     with col2:
         fig2 = px.line(new3, 
                     x='comment_time',
@@ -269,6 +270,10 @@ def analyze_wait_time():
 
         st.plotly_chart(fig2, use_container_width=True)
     
+    st.write('')
+    st.write('')
+    st.write('')
+    st.write('')
     st.markdown(f"""Perhaps another solution would be to use machine learning or do a time analysis on each individual post 
                 in order to predict when the last comment has been added. A data scientist or ML Engineer 
                 would need to investigate further.""")
