@@ -5,6 +5,7 @@ from google.cloud import bigquery
 from datetime import datetime, timedelta, date
 import pandas_gbq
 import pytz
+import numpy as np
 
 import plotly.express as px
 
@@ -104,16 +105,159 @@ def timeline_chart():
         tickformat="%H\n%a%_d"
     )
     
-    col1,col2 = st.columns([1,1])
-    with col1:
-        st.markdown('## Total Comments by Hour')
-    with col2: 
-        st.write('')
-        st.write('')
-        st.markdown(f'Timezone: {user_time_zone}')
+    st.markdown("<h3 style='text-align: center;'> Total Comments by Hour for r/dataengineering</h3>", unsafe_allow_html=True)
+    #st.markdown(f"<div style='text-align: center;'>Timezone: {user_time_zone}</div>", unsafe_allow_html=True)
     
     st.plotly_chart(fig, use_container_width=True)
 
+def analyze_wait_time():
+    
+    st.markdown("<h4 style='text-align: center;'>How long after the last comment should we wait until we a consider a post <strong><em>done</strong></em> ?</h4>", unsafe_allow_html=True)
+    
+    col1,col2,col3 = st.columns([1,1,1])
+    with col2:
+        user_option = st.selectbox(
+            'Select number of hours',
+            ('6 hours', '12 hours', '18 hours', '24 hours (1 day)', 
+             '48 hours (2 days)', '72 hours (3 days)', '96 hours (4 days)',
+             '120 hours (5 days)', '148 hours (6 days)', '172 hours (7 days)'),
+            label_visibility='hidden')
+
+    if user_option == "6 hours": 
+        option = 6
+    elif user_option == "12 hours":
+        option = 12
+    elif user_option == "24 hours (1 day)":
+        option = 24
+    elif user_option == "48 hours (2 days)":
+        option = 48 
+    elif user_option == "72 hours (3 days)":
+        option = 72
+    elif user_option == "96 hours (4 days)":
+        option = 92 
+    elif user_option == "120 hours (5 days)":
+        option = 120 
+    elif user_option == "148 hours (6 days)":
+        option = 148
+    elif user_option == "172 hours (7 days)":
+        option = 172
+    # Find total posts since inception
+    query_number_of_posts = (
+            """
+            SELECT count(distinct s_id) as s_count
+            FROM `comments_dataset.comments_table`
+            """
+        )
+    total_posts = next(client.query(query_number_of_posts).result())[0]
+    
+    # Create df showing comments passed wait period threshold
+    query = (
+            """
+            SELECT s_id, s_time, s_title, ARRAY_AGG(c_time) as c_time_list, count(*) as c_count
+            FROM `comments_dataset.comments_table`
+            GROUP BY s_id, s_time, s_title
+            ORDER BY s_time DESC
+            """
+        )
+    df = client.query(query).to_dataframe()
+
+    def sort_list(comment_list):
+        x = np.sort(comment_list)
+        return x
+
+    def find_time_diff(comment_list):
+        
+        x = pd.DataFrame(comment_list, columns = ['Column_A'])
+        last_c_time = x.iloc[-1].item()
+        time_diff = x['Column_A'].diff()
+        return pd.Series([time_diff,last_c_time])
+
+    def find_prev_threshold(time_diff_list):
+        passed_threshold = np.where((time_diff_list > np.timedelta64(option,'h')).any(), "Yes","")
+        return pd.Series([passed_threshold])
+
+    # Sorts c_time_list in chronological order
+    df['c_time_list'] = df['c_time_list'].apply(sort_list)
+
+    # finds the timedelta between times in c_time_list
+    df[['time_diff','last_c_time']] = df['c_time_list'].apply(find_time_diff)
+
+    # Given a certain wait period, calculates the date/time the post passed this wait period threshold
+    df['dt_cross_threshold'] = (np.where(df['last_c_time'].dt.tz_localize('UTC').dt.to_pydatetime() < datetime.now().astimezone(pytz.timezone("UTC"))- timedelta(hours=option), 
+                                        df['last_c_time'].dt.to_pydatetime() + timedelta(hours=24), 
+                                        "")
+                            )
+
+    # Given a certain wait period, calculates if a comment was posted after the wait period
+    df[['prev_c_threshold']] = df['time_diff'].apply(find_prev_threshold)
+
+    df_new = df[df['prev_c_threshold']=='Yes']
+    posts_that_crossed_threshold = df[df['prev_c_threshold']=='Yes'].shape[0]
+    
+    percentage_wrong = posts_that_crossed_threshold/total_posts
+
+    st.markdown(f"<h3 style='text-align: center;'> Given a wait time of {user_option}:</h3>", unsafe_allow_html=True)
+    
+    st.markdown(f"""<div style='text-align: center;'><strong style="font-size:24px;">{1 - percentage_wrong:.0%}</strong> of posts were correctly labeled as done 
+                (<strong>{total_posts-posts_that_crossed_threshold}</strong> out of {total_posts} total posts since 10/4/2022)</div>""", unsafe_allow_html=True)
+    
+    st.markdown(f"""<div style='text-align: center;'><strong style="font-size:24px;">{percentage_wrong:.0%}</strong> of posts were incorrectly labeled as done 
+                (<strong>{posts_that_crossed_threshold}</strong> out of {total_posts} total posts since 10/4/2022)</div>""", unsafe_allow_html=True)
+    st.write('')
+    st.write('')
+    
+    st.markdown("""Thus, one solution to determining when a post is **done** is finding a wait time that leads to an acceptable percentage of posts that are incorrectly labeled
+                (perhaps an acceptable percentage is less than or equal to 1%).""")
+    
+    st.markdown(f"""Now let's examine these **{posts_that_crossed_threshold}** posts that at one point we considered **done** 
+            because there were no new comments after **{user_option}** but then which became **un-done** when one or more comments
+            were added after this wait time.""")
+    
+    df_clean = df_new[['s_id','s_time','s_title','c_count', 'last_c_time']]
+    df_clean.rename(columns={'s_id':'Post ID','s_time':'Post Date','s_title': 'Post Title',
+                             'c_count': 'Comments', 'last_c_time': 'Last Comment Time'}, 
+                    inplace=True)
+    df_clean['Post Title'] = df_clean['Post Title'].str[:60]
+    df_clean.reset_index(drop=True, inplace=True)
+    df_clean["Post Date"] = df_clean["Post Date"].dt.strftime('%Y-%m-%d')
+    df_clean["Last Comment Time"] = df_clean["Last Comment Time"].dt.strftime('%Y-%m-%d %X')
+    
+
+    st.dataframe(df_clean, use_container_width = True)
+    
+    #st.markdown("<h4 style='text-align: center;'>Select a post index to see its time plot of comments: </h4>", unsafe_allow_html=True)
+    col1,col2,col3,col4,col5= st.columns([1,1,1,1,1])
+    with col3:
+        user_input = st.selectbox(
+            'Select a Post ID to see its plot:',
+            list(df_clean['Post ID']),
+            label_visibility='visible'
+            )
+    
+    new1 = df_new[df_new['s_id']==user_input]['time_diff'].iloc[0].to_frame()
+    new1.rename(columns={'Column_A': 'time_diff'},inplace=True)
+    new2 = pd.DataFrame(df_new[df_new['s_id']==user_input]['c_time_list'].iloc[0],columns=['comment_time'])
+    new3 = pd.concat([new2,new1], axis=1)
+    new3['time_diff'].fillna(pd.Timedelta(seconds=0),inplace=True)
+    new3['hours_diff'] = new3['time_diff']/pd.Timedelta("1 hour")
+
+    fig2 = px.line(new3, 
+                x='comment_time',
+                y='hours_diff',
+                labels={
+                    "comment_time": "Comment Date",
+                    "hours_diff": "Hours since last comment"},
+                markers=True)
+    
+    fig2.add_hline(y=option,
+                  line_width=1, 
+                  line_dash="dash", 
+                  line_color="red", 
+                  annotation_text=f"{option}hr threshold",
+                  annotation_position="bottom left")
+
+    st.plotly_chart(fig2, use_container_width=True)
+    
 def most_recent_comments():
 
     hide_table_row_index = """
@@ -135,16 +279,28 @@ def most_recent_comments():
     df = pd.read_gbq(query_current_comments, credentials=credentials)
     df['Time_Submitted'] = df['Time_Submitted'].dt.tz_localize('utc').dt.tz_convert(user_time_zone).dt.strftime("%I:%M %p %Z")
     st.markdown('### 25 Most Recent Comments')
-    st.table(df)
+    st.dataframe(df)
 
 
 ## functions end here, title, sidebar setting and descriptions start here
 
-st.markdown('# r/DataEngineering Dashboard')
+st.markdown("<h1 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h1>",unsafe_allow_html=True)
 st.write("")
+st.markdown("""A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series).
+            The plot below shows the total number of comments per hour for the entire **r/dataengineering** subreddit (a subreddit is a collection of posts).""")
 
 timeline_chart()
-most_recent_comments()
+
+st.markdown("""We are trying to predict when a post is **done**. A post is considered **done** when no new comments will be added to the post in the future.
+            Of course, archived posts are the only posts that are truly ever **done** since users are prevented from adding new comments to these archived posts.
+            Posts are archived automatically after a year. 
+            However, most posts are usually **done** much sooner than a year (usually within a week), and this sooner point in time is what we are attempting to predict.
+            Let's analyze how many posts would be considered **done** given a certain period of time after the last comment: """)
+
+analyze_wait_time()
+
+
+#most_recent_comments()
 
 with st.sidebar:
     with st.container():
@@ -160,7 +316,7 @@ with st.sidebar:
     
     with st.expander("Click to learn more about this dashboard"):
         st.markdown(f"""
-        This dashboard is primarily focused on machine learning. 
+        This dashboard is primarily focused on machine learning.
         
         *Report updated on {str(today)}.*  
         """)
