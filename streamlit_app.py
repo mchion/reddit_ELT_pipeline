@@ -275,7 +275,7 @@ def analyze_wait_time():
     st.write('')
     st.write('')
     st.markdown(f"""As you can see, another solution to determining when a post is **done** would be to use machine learning or 
-                a time analysis on each individual post in order to predict when the last comment has been added. 
+                a time series analysis on each individual post in order to predict when the last comment has been added. 
                 A data scientist or ML Engineer would need to investigate further.""")
     
 def most_recent_comments():
