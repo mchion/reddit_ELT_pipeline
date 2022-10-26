@@ -105,7 +105,7 @@ def timeline_chart():
         tickformat="%H\n%a%_d"
     )
     
-    st.markdown("<h3 style='text-align: center;'> Total Comments by Hour for r/dataengineering</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'> Total Comments by Hour for <a href = 'https://www.reddit.com/r/dataengineering/'><font color='#FF5700'>r/dataengineering</font></a></h3>", unsafe_allow_html=True)
     #st.markdown(f"<div style='text-align: center;'>Timezone: {user_time_zone}</div>", unsafe_allow_html=True)
     
     st.plotly_chart(fig, use_container_width=True)
@@ -274,9 +274,9 @@ def analyze_wait_time():
     st.write('')
     st.write('')
     st.write('')
-    st.markdown(f"""Perhaps another solution would be to use machine learning or do a time analysis on each individual post 
-                in order to predict when the last comment has been added. A data scientist or ML Engineer 
-                would need to investigate further.""")
+    st.markdown(f"""As you can see, another solution to determining when a post is **done** would be to use machine learning or 
+                a time analysis on each individual post in order to predict when the last comment has been added. 
+                A data scientist or ML Engineer would need to investigate further.""")
     
 def most_recent_comments():
 
@@ -307,7 +307,8 @@ def most_recent_comments():
 st.markdown("<h1 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h1>",unsafe_allow_html=True)
 st.write("")
 st.markdown("""A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series).
-            The plot below shows the total number of comments per hour for the entire **r/dataengineering** subreddit (a subreddit is a collection of posts).""")
+            The plot below shows the total number of comments per hour for the entire <a href = 'https://www.reddit.com/r/dataengineering/'> <font color='#FF5700'>r/dataengineering</font></a> 
+            subreddit (a subreddit is a collection of posts).""", unsafe_allow_html=True)
 
 timeline_chart()
 
