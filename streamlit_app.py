@@ -3,11 +3,12 @@ import pandas as pd
 from google.oauth2 import service_account
 from google.cloud import bigquery
 from datetime import datetime, timedelta, date
-import pandas_gbq
 import pytz
 import numpy as np
 
 import plotly.express as px
+
+pd.options.mode.chained_assignment = None
 
 st.set_page_config(
     page_title='r/DataEngineering Dashboard',
@@ -73,26 +74,24 @@ with st.sidebar:
 def timeline_chart():
     query_comment_timestamps = (
         """
-        SELECT DATETIME(c_time) as time
+        SELECT datetime(format_date('%Y-%m-%d %H:00:00', c_time)) as day_hour, count(c_time) as count
         FROM `comments_dataset.comments_table`
-        WHERE c_time > @timeframe
-        ORDER BY time DESC
+        WHERE c_time > CURRENT_TIMESTAMP - INTERVAL '168' HOUR
+        GROUP BY day_hour
+        ORDER BY day_hour DESC
         """
+        
     )
-    timeframe = (datetime.now().astimezone(pytz.timezone("UTC"))- timedelta(hours=168)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
     query_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ScalarQueryParameter("timeframe", "STRING", timeframe)
-            ]
+        # query_parameters=[
+        #     bigquery.ScalarQueryParameter("timeframe", "STRING", timeframe)
+        #     ]
         )
     df = client.query(query_comment_timestamps, job_config = query_config).to_dataframe()
-    df['time'] = df['time'].dt.tz_localize('utc').dt.tz_convert(user_time_zone)
-    df['count'] = 1
-    dft2 = df.resample('H',on='time').sum()
-    dft2.index.rename('day_hour', inplace=True)
-    dft2.reset_index(inplace=True)
+    df['day_hour'] = df['day_hour'].dt.tz_localize('utc').dt.tz_convert(user_time_zone)
     
-    fig = px.bar(dft2,
+    fig = px.bar(df,
             x='day_hour',
             y='count',
             hover_data={"day_hour": "|%b %d, %H:00"},
@@ -106,13 +105,17 @@ def timeline_chart():
     )
     
     st.markdown("<h3 style='text-align: center;'> Total Comments by Hour for <a href = 'https://www.reddit.com/r/dataengineering/'><font color='#FF5700'>r/dataengineering</font></a></h3>", unsafe_allow_html=True)
-    #st.markdown(f"<div style='text-align: center;'>Timezone: {user_time_zone}</div>", unsafe_allow_html=True)
     
     st.plotly_chart(fig, use_container_width=True)
 
 def analyze_wait_time():
     
-    st.markdown("<h4 style='text-align: center;'>How long after the last comment should we wait until we a consider a post <strong>done</strong>?</h4>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>APPROACH #1 </h3>", unsafe_allow_html=True)
+    
+    st.markdown("""Choose a wait time that leads to an acceptable percentage of posts that are incorrectly labeled. For instance, if you choose a wait time of 4 days, and the percentage of incorrectly labeled posts is 1%, then this percentage may be an acceptable number for you.""")
+    
+    st.markdown("<h4 style='text-align: center;'>Try it out:</h4>", unsafe_allow_html=True)
+    st.markdown("<h5 style='text-align: center;'>How long after the last comment should we wait until we a consider a post <strong>done</strong>?</h5>", unsafe_allow_html=True)
     
     col1,col2,col3 = st.columns([1,1,1])
     with col2:
@@ -196,20 +199,17 @@ def analyze_wait_time():
     
     percentage_wrong = posts_that_crossed_threshold/total_posts
 
-    st.markdown(f"<h3 style='text-align: center;'> Given a wait time of {user_option}:</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h5 style='text-align: center;'> Given a wait time of {user_option}:</h5>", unsafe_allow_html=True)
     
     st.markdown(f"""<div style='text-align: center;'><strong style="font-size:24px;">{1 - percentage_wrong:.0%}</strong> of posts were correctly labeled as done 
-                (<strong>{total_posts-posts_that_crossed_threshold}</strong> out of {total_posts} total posts since 10/4/2022)</div>""", unsafe_allow_html=True)
+                (<strong>{total_posts-posts_that_crossed_threshold}</strong> out of {total_posts} total posts since 1/7/2023)</div>""", unsafe_allow_html=True)
     
     st.markdown(f"""<div style='text-align: center;'><strong style="font-size:24px;">{percentage_wrong:.0%}</strong> of posts were incorrectly labeled as done 
-                (<strong>{posts_that_crossed_threshold}</strong> out of {total_posts} total posts since 10/4/2022)</div>""", unsafe_allow_html=True)
+                (<strong>{posts_that_crossed_threshold}</strong> out of {total_posts} total posts since 1/7/2023)</div>""", unsafe_allow_html=True)
     st.write('')
     st.write('')
     
-    st.markdown("""Thus, one solution to determining when a post is **done** is finding a wait time that leads to an acceptable percentage of posts that are incorrectly labeled
-                (perhaps an acceptable percentage is less than or equal to 1%).""")
-    
-    st.markdown(f"""Now let's examine these **{posts_that_crossed_threshold}** posts that at one point we considered **done** 
+    st.markdown(f"""Let's examine these **{posts_that_crossed_threshold}** posts that at one point we considered **done** 
             because there were no new comments after **{user_option}** but then which became **un-done** when one or more comments
             were added after this wait time.""")
     
@@ -272,11 +272,11 @@ def analyze_wait_time():
     
     st.write('')
     st.write('')
+    st.markdown("<h3 style='text-align: center;'>APPROACH #2 </h3>", unsafe_allow_html=True)
     st.write('')
-    st.write('')
-    st.markdown(f"""As you can see, another solution to determining when a post is **done** would be to use machine learning or 
+    st.markdown(f"""Use machine learning or perform 
                 a time series analysis on each individual post in order to predict when the last comment has been added. 
-                A data scientist or ML Engineer would need to investigate further.""")
+                A data scientist or ML Engineer would need to investigate further since the focus of this project is mainly on the ETL of the data.""")
     
 def most_recent_comments():
 
@@ -313,10 +313,9 @@ st.markdown("""A post on Reddit can contain zero or more comments. We can view c
 timeline_chart()
 
 st.markdown("""We are trying to predict when a post is **done**. A post is considered **done** when no new comments will be added to the post in the future.
-            Of course, archived posts are the only posts that are truly ever **done** since users are prevented from adding new comments to these archived posts.
-            Posts are archived automatically after a year. 
-            However, most posts are usually **done** much sooner than a year (usually within a week), and this sooner point in time is what we are attempting to predict.
-            Let's analyze how many posts would be considered **done** given a certain period of time after the last comment: """)
+            Only archived posts are with 100% certainty **done** because after a post is archived, no new comments are allowed on that post.
+            Posts are archived automatically after 6 months. 
+            However, most posts are usually **done** much sooner than 6 months (usually within a week), and this sooner point in time is what we are attempting to predict.""")
 
 analyze_wait_time()
 
