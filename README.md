@@ -9,14 +9,12 @@ The extraction is scheduled to run hourly. The end goal is to
 
 ## Data Extraction
 
-- **Reddit API**: 
-Reddit's API limits the amount of comments that can be retrieved to 100. Thus, we have to make repeated calls and make sure we are only grabbing new posts from `last_timestamp`
-
+- **Reddit API**: The API has a rate limit of a fixed 100 comments per request. Thus, we have to make repeated calls and make sure we are only grabbing new posts from `last_timestamp`
 
 
 ## Data Loading
 
-Most of the transformation logic takes place using python scripting and Pandas. 
+Data is mostly loaded directly into our data warehouse with only minimal transformations . Batches of 100 comments are first loaded into 
 
 - **Data Schema**:
 
@@ -31,15 +29,13 @@ Most of the transformation logic takes place using python scripting and Pandas.
   | s_title | post title |
   | s_time | post timestamp |
 
-
-
-The schema is 
+- **Scalability**: If our data batches were larger, we would want to use something like Spark Streaming
 
 
 
 ## Data Transformation
 
-Once the data is loaded into our BigQuery data warehouse, we use SQL and pandas to transform the data into what we want
+Once the data is loaded into our BigQuery data warehouse, we use SQL and pandas to transform the data into what we want. This gives us more flexibility in the end. 
 
 ## Data Visualization
 
@@ -54,6 +50,6 @@ Planning to incorporate some unit testing involving PyTest.
 
 ## Futher Directions and Considerations
 
--- Machine 
+- **Machine Learning**: Using machine learning or time series analysis to find patterns in the rate of comments  
 
-- **Handling Big Data**: While 
+- **Handling Big Data**: I have chosen a subreddit with relatively low, steady comment rate per hour. However, if we were dealing with a more popular subreddit, we would have to change the streaming method. Maybe use a Kafka message queue before loading it into an S3 database. 
