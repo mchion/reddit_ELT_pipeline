@@ -130,16 +130,18 @@ def analyze_wait_time():
         option = 6
     elif user_option == "12 hours":
         option = 12
+    elif user_option == "18 hours":
+        option = 18
     elif user_option == "24 hours (1 day)":
         option = 24
     elif user_option == "48 hours (2 days)":
-        option = 48 
+        option = 48
     elif user_option == "72 hours (3 days)":
         option = 72
     elif user_option == "96 hours (4 days)":
-        option = 92 
+        option = 92
     elif user_option == "120 hours (5 days)":
-        option = 120 
+        option = 120
     elif user_option == "148 hours (6 days)":
         option = 148
     elif user_option == "172 hours (7 days)":
@@ -209,9 +211,9 @@ def analyze_wait_time():
     st.write('')
     st.write('')
     
-    st.markdown(f"""Let's examine these **{posts_that_crossed_threshold}** posts that at one point we considered **done** 
-            because there were no new comments after **{user_option}** but then which became **un-done** when one or more comments
-            were added after this wait time.""")
+    st.markdown(f"""Let's examine the **{posts_that_crossed_threshold}** posts that at one point we considered **done** 
+            because there were no new comments after **{user_option}** BUT THEN became **un-done** when one or more comments
+            were added after **{user_option}**.""")
     
     df_clean = df_new[['s_id','s_time','s_title','c_count', 'last_c_time']]
     df_clean.rename(columns={'s_id':'Post ID','s_time':'Post Date','s_title': 'Post Title (truncated)',
@@ -233,42 +235,43 @@ def analyze_wait_time():
             list(df_clean.index.astype(str) + " - " + df_clean['Post ID']),
             label_visibility='visible'
             )
-    
-        user_input = user_input_raw.split(" - ")[1]
-        new1 = df_new[df_new['s_id']==user_input].loc[:,'time_diff'].iloc[0].to_frame()
-        new1.rename(columns={'Column_A': 'time_diff'},inplace=True)
-        new2 = pd.DataFrame(df_new[df_new['s_id']==user_input].loc[:,'c_time_list'].iloc[0],columns=['comment_time'])
-        new3 = pd.concat([new2,new1], axis=1)
-        new3['time_diff'].fillna(pd.Timedelta(seconds=0),inplace=True)
-        new3['hours_diff'] = new3['time_diff']/pd.Timedelta("1 hour")
+        if user_input_raw is not None:
+            user_input = user_input_raw.split(" - ")[1]
+            new1 = df_new[df_new['s_id']==user_input].loc[:,'time_diff'].iloc[0].to_frame()
+            new1.rename(columns={'Column_A': 'time_diff'},inplace=True)
+            new2 = pd.DataFrame(df_new[df_new['s_id']==user_input].loc[:,'c_time_list'].iloc[0],columns=['comment_time'])
+            new3 = pd.concat([new2,new1], axis=1)
+            new3['time_diff'].fillna(pd.Timedelta(seconds=0),inplace=True)
+            new3['hours_diff'] = new3['time_diff']/pd.Timedelta("1 hour")
 
-        new_view = new3[['comment_time','hours_diff']]
-        new_view = new_view.rename(columns={'comment_time':'Comment Timestamp', 'hours_diff': '*Hours'})
-        new_view['*Hours'] = new_view['*Hours'].apply(lambda x: '{:,.2f}'.format(x))
-        new_view['Comment Timestamp'] = new_view['Comment Timestamp'].dt.strftime('%Y-%m-%d %X')
-    
-        st.dataframe(new_view, use_container_width = True)
-        st.markdown("<em>\*Hours since previous comment</em>", unsafe_allow_html=True )
-    with col2:
-        fig2 = px.line(new3, 
-                    x='comment_time',
-                    y='hours_diff',
-                    labels={
-                        "comment_time": "Comment Timestamp",
-                        "hours_diff": "Hours"},
-                    markers=True,
-                    title = f'Time plot for {user_input_raw}')
+            new_view = new3[['comment_time','hours_diff']]
+            new_view = new_view.rename(columns={'comment_time':'Comment Timestamp', 'hours_diff': '*Hours'})
+            new_view['*Hours'] = new_view['*Hours'].apply(lambda x: '{:,.2f}'.format(x))
+            new_view['Comment Timestamp'] = new_view['Comment Timestamp'].dt.strftime('%Y-%m-%d %X')
         
-        fig2.update_layout(title_x=0.5)
-        
-        fig2.add_hline(y=option,
-                    line_width=1, 
-                    line_dash="dash", 
-                    line_color="red", 
-                    annotation_text=f"{option}hr threshold",
-                    annotation_position="bottom left")
+            st.dataframe(new_view, use_container_width = True)
+            st.markdown("<em>\*Hours since previous comment</em>", unsafe_allow_html=True )
+            
+            with col2:
+                fig2 = px.line(new3, 
+                            x='comment_time',
+                            y='hours_diff',
+                            labels={
+                                "comment_time": "Comment Timestamp",
+                                "hours_diff": "Hours"},
+                            markers=True,
+                            title = f'Time plot for {user_input_raw}')
+                
+                fig2.update_layout(title_x=0.5)
+                
+                fig2.add_hline(y=option,
+                            line_width=1, 
+                            line_dash="dash", 
+                            line_color="red", 
+                            annotation_text=f"{option}hr threshold",
+                            annotation_position="bottom left")
 
-        st.plotly_chart(fig2, use_container_width=True)
+                st.plotly_chart(fig2, use_container_width=True)
     
     st.write('')
     st.write('')
@@ -313,7 +316,8 @@ st.markdown("""A post on Reddit can contain zero or more comments. We can view c
 timeline_chart()
 
 st.markdown("""We are trying to predict when a post is **done**. A post is considered **done** when no new comments will be added to the post in the future.
-            Only archived posts are with 100% certainty **done** because after a post is archived, no new comments are allowed on that post.
+            The only posts we can consider **done** with 100% certainty are archived posts because once a post is archived, 
+            no more comments are allowed from that point forward on the archived post.
             Posts are archived automatically after 6 months. 
             However, most posts are usually **done** much sooner than 6 months (usually within a week), and this sooner point in time is what we are attempting to predict.""")
 
