@@ -338,14 +338,14 @@ with st.sidebar:
     #st.button("Refresh app")
     #st.markdown('*Note: New comments ingested hourly*')
     
-    with st.expander("Click to learn more about this dashboard"):
-        st.markdown(f"""
-        This dashboard is designed as a mock user endpoint for a data engineering project.
-        Details about the data engineering pipeline can be found in the [Github](https://github.com/mchion/reddit_serverless_stream) repository.
-        
-        This is NOT a data science or machine learning project, but future improvements will focus on the ML and MLOps side of this project.
-        
-        *All data on this dashboard is active and constantly changing based on new incoming data. 
-        New comments from the dataengineering subreddit are ingested to the database on an hourly basis.*
+    #with st.expander("Click to learn more about this dashboard"):
+    st.markdown(f"""
+    This dashboard is designed as a mock user endpoint for a data engineering project.
+    Details about the data engineering pipeline can be found in the [Github](https://github.com/mchion/reddit_serverless_stream) repository.
+    
+    This is NOT a data science or machine learning project, but future improvements will focus on the ML and MLOps side of this project.
+    
+    *All data on this dashboard is active and constantly changing based on new incoming data. 
+    New comments from the dataengineering subreddit are ingested to the database on an hourly basis.*
 
-        """)
+    """)
