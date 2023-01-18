@@ -4,17 +4,19 @@ ELT pipeline that extracts posts and comments from Reddit, loads it into BigQuer
 
 ![Setup Overview Diagram](/images/Pipeline.svg)
 
-Data extraction is scheduled to run hourly using Cloud Run. The end goal is to try to determine when a Reddit post is "done" – when no new comments will be added to the post in the future. 
-[Click here to view the interactive dashboard](https://mchion-reddit-elt-pipeline-streamlit-app-wvgpbg.streamlit.app/)
+Data extraction is scheduled to run hourly using Cloud Run. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
+[Click here to view the interactive dashboard](https://mchion-reddit-elt-pipeline-streamlit-app-wvgpbg.streamlit.app/).
 
 ## Data Extraction
 
-- **Reddit API**: The API has a rate limit of a fixed 100 comments per request. Thus, we have to make repeated calls and make sure we are only grabbing new posts from `last_timestamp`
+Extraction is done by a python app that is dockerized and placed into Artifact Registry. Cloud Run then schedules 
+
+- **Reddit API**: [PRAW](https://praw.readthedocs.io/en/stable/index.html), a Python Reddit API wrapper, was used to make comment extraction easier. However, the API only allows a fixed extraction amount of 100 comments at a time. This means that it is not possible to extract any other amount – say 50 comments – besides 100. Thus, in order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, because this particular subreddit the app is extracting from is not usually very active, the likelihood is small that this would happen and it's not the end of the world if it does.
 
 
 ## Data Loading
 
-Data is mostly loaded directly into our data warehouse with only minimal transformations . Batches of 100 comments are first loaded into 
+Data is mostly loaded directly into our data warehouse with only minimal transformations. 
 
 - **Data Schema**:
 
