@@ -341,7 +341,7 @@ with st.sidebar:
     with st.expander("Click to learn more about this dashboard",expanded=True):
         st.markdown(f"""
         This dashboard is designed as a mock user endpoint for a data engineering project.
-        Details about the data engineering pipeline can be found in the [Github](https://github.com/mchion/reddit_serverless_pipeline) repository.
+        Details about the data engineering pipeline can be found in the [Github](https://github.com/mchion/reddit_ELT_pipeline) repository.
         
         This is NOT a data science or ML project, but future deployments will focus more on the ML and MLOps aspects of it.
         
