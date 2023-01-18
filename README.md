@@ -1,6 +1,7 @@
-# Serverless Reddit Stream
+# Cloud-Based ELT Pipeline
 
-EtLT pipeline that automatically extracts posts and comments from Reddit using 
+ELT pipeline that extracts posts and comments from Reddit, loads it into BigQuery, and transforms it into a dashboard. 
+[Click here to view the interactive dashboard](https://mchion-reddit-serverless-stream-streamlit-app-axxcn6.streamlit.app/)
 
 ![Setup Overview Diagram](/images/Pipeline.svg)
 
