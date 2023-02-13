@@ -123,10 +123,10 @@ def analyze_wait_time():
             'Select number of hours',
             ('6 hours', '12 hours', '18 hours', '24 hours (1 day)', 
              '48 hours (2 days)', '72 hours (3 days)', '96 hours (4 days)',
-             '120 hours (5 days)', '148 hours (6 days)', '172 hours (7 days)'),
+             '120 hours (5 days)', '148 hours (6 days)', '172 hours (7 days)', '504 hours (3 weeks)'),
             label_visibility='hidden')
 
-    if user_option == "6 hours": 
+    if user_option == "6 hours":
         option = 6
     elif user_option == "12 hours":
         option = 12
@@ -146,6 +146,8 @@ def analyze_wait_time():
         option = 148
     elif user_option == "172 hours (7 days)":
         option = 172
+    elif user_option == "504 hours (3 weeks)":
+        option = 504
     # Find total posts since inception
     query_number_of_posts = (
             """
