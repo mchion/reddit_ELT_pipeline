@@ -20,18 +20,10 @@ In addition, being able to extract only 100 comments at time means that we need 
 
 Data is loaded directly into our data warehouse with minimal transformations for timestamp formatting and proper time zone. 
 
-- **Data Schema**:
+- **Data Model**:
 
-  | Column Name | Value | 
-  | ------------ | --------- | 
-  | c_id | comment ID |
-  | c_author | comment author |
-  | c_body | comment message |
-  | c_time | comment timestamp |
-  | s_id | post ID |
-  | s_author | post author |
-  | s_title | post title |
-  | s_time | post timestamp |
+![Data Model](/images/schema.svg)
+
 
 
 ## Data Transformation
