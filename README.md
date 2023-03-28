@@ -1,8 +1,8 @@
-# Cloud-Based ELT Pipeline
+# GCP ELT Pipeline
 
 ELT pipeline that extracts posts and comments from Reddit, loads it into BigQuery, and transforms it into a dashboard.
 
-![Setup Overview Diagram](/images/Pipeline.svg)
+![Setup Overview Diagram](/images/Pipeline.png)
 
 Data extraction is scheduled to run hourly using Cloud Run. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
 [**Click here to view the interactive dashboard**](https://mchion-reddit-elt-pipeline-streamlit-app-wvgpbg.streamlit.app/).
