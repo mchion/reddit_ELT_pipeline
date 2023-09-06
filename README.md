@@ -7,7 +7,13 @@ ELT pipeline that extracts posts and comments from Reddit, loads it into BigQuer
 Data extraction is scheduled to run hourly using Cloud Run. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
 [**Click here to view the interactive dashboard**](https://mchion-reddit-elt-pipeline-streamlit-app-wvgpbg.streamlit.app/).
 
-## Data Extraction
+## Data Source
+
+- **Reddit API**: [PRAW](https://praw.readthedocs.io/en/stable/index.html), a Python Reddit API wrapper, was used to make comment extraction easier. However, the API only allows a fixed extraction amount of 100 comments at a time. This means that it is not possible to extract any other amount – say 50 comments – besides 100. Thus, in order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, because this particular subreddit the app is extracting from is not usually very active, the likelihood is small that this would happen and it's not the end of the world if it does.\
+
+
+
+## Data Ingestion
 
 Extraction is done by a Python app that is Dockerized and placed into Artifact Registry. Cloud Run then schedules this app to run every hour. 
 
@@ -33,6 +39,11 @@ Once the data is loaded into our data warehouse BigQuery, we use SQL and pandas 
 - **Scalability Consideration**: Because we are not working with a large amount of data, we can do things like load our entire database table into our  dashboard app without any scalability issues. However, if we were working with Big Data, we would have to use a cloud tools like dbt or move the entire ELT process into a cloud platform like Snowflake or Databricks. \
 \
 If we were dealing with a more popular subreddit where the rate of comments becomes almost like a constantly streaming data source, we would have to consider using a Kafka message queue before possibly loading it into an object storage like AWS S3. 
+
+## Data Warehouse
+
+Once data is transformed
+
 
 ## Data Visualization
 
