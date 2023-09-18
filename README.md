@@ -35,7 +35,7 @@ If we were dealing with a more popular subreddit where the rate of comments beco
 - **Get only new comments**: Because of our extraction process, we loaded exactly 100 comments without regard to whether we have requested them before. This means that our data has duplicates. We read from our data warehouse the latest timestamp and use that to
 only extract from
 
-- **Load into **: Loading data is simple enough. We just have to make sure it matches the 
+- **Load into BigQuery**: Loading data is simple enough. We just have to make sure it matches the 
 
 ## Data Warehouse
 
@@ -50,9 +50,7 @@ Our data model is simple enough and our data analyzation usage is simple enough 
 
 - **Dashboard**: To simulate analysis, we chose to build out a dashboard that shows comments per hour. It also builds out how many posts were considered "complete"
 
-- **Streamlit**: 
-
-Although there are plenty of dashboard tools (Tableu, PowerBI, etc.) one can use to build a dashboard, I chose [**Streamlit**](https://streamlit.io/) because it is an all Python, open-source framework that is easy to use and super customizable. Most importantly, it's free to deploy and share your dashboard to the public. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
+- **Streamlit**: Although there are plenty of dashboard tools (Tableu, PowerBI, etc.) one can use to build a dashboard, I chose [**Streamlit**](https://streamlit.io/) because it is an all Python, open-source framework that is easy to use and super customizable. Most importantly, it's free to deploy and share your dashboard to the public. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
 
 ![Dashboard General](/images/dashboard1.png)
 ![Dashboard General](/images/dashboard2.png)
