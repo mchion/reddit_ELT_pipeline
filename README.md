@@ -48,12 +48,20 @@ Our data model is simple enough and our data analyzation usage is simple enough 
 
 ## Data Visualization
 
-- **Dashboard**: To simulate analysis, we chose to build out a dashboard that shows comments per hour. It also builds out how many posts were considered "complete"
+- **Dashboard using Streamlit**: To simulate analysis, we chose to build out a dashboard that shows comments per hour. It also builds out how many posts were considered "complete". Although there are plenty of dashboard tools (Tableu, PowerBI, etc.) one can use to build a dashboard, I chose [**Streamlit**](https://streamlit.io/) because it is an all Python, open-source framework that is easy to use and super customizable. Most importantly, it's free to deploy and share your dashboard to the public. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
 
-- **Streamlit**: Although there are plenty of dashboard tools (Tableu, PowerBI, etc.) one can use to build a dashboard, I chose [**Streamlit**](https://streamlit.io/) because it is an all Python, open-source framework that is easy to use and super customizable. Most importantly, it's free to deploy and share your dashboard to the public. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
+- **Analysis # 1: Total comments per hour**:
+<p align="center">
+  <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/dashboard1.png" width="800"/>
+</p>
 
-![Dashboard General](/images/dashboard1.png)
-![Dashboard General](/images/dashboard2.png)
+- **Analysis #2: Percentage of posts that meet time threshold**:\
+\
+Let's say you're an machine learning engineer that wants to determine when a post usually completes - in other words, when the last post was made. 
+
+<p align="center">
+  <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/dashboard3.png" width="800"/>
+</p>
 
 
 ## Futher Directions and Considerations
