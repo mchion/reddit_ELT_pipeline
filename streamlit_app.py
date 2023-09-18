@@ -309,8 +309,11 @@ def most_recent_comments():
 
 ## functions end here, title, sidebar setting and descriptions start here
 
-st.markdown("<h1 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h1>",unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h3>",unsafe_allow_html=True)
 st.write("")
+
+st.markdown("<h3 style='text-align: center;'>Analysis #1"</h3>",unsafe_allow_html=True)
+
 st.markdown("""A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series).
             The plot below shows the total number of comments per hour for the entire <a href = 'https://www.reddit.com/r/dataengineering/'> <font color='#FF5700'>r/dataengineering</font></a> 
             subreddit (a subreddit is a collection of posts).""", unsafe_allow_html=True)
@@ -342,10 +345,8 @@ with st.sidebar:
     
     with st.expander("Click to learn more about this dashboard",expanded=True):
         st.markdown(f"""
-        This dashboard is designed as a mock user endpoint for a data engineering project.
+        This dashboard shows some analysis for a data engineering project.
         Details about the data engineering pipeline can be found in the [Github](https://github.com/mchion/reddit_ELT_pipeline) repository.
-        
-        This is NOT a data science or ML project, but future deployments will focus more on the ML and MLOps aspects of it.
         
         *All data on this dashboard is active and constantly changing based on new incoming data. 
         New comments from the dataengineering subreddit are ingested to the database on an hourly basis.*
