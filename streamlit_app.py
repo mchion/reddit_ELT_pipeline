@@ -114,10 +114,13 @@ def analyze_wait_time():
 
     st.markdown("<h3 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h3>",unsafe_allow_html=True)
     st.write("")
-    
-    st.markdown("""A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series).
-            The plot below shows the total number of comments per hour for the entire <a href = 'https://www.reddit.com/r/dataengineering/'> <font color='#FF5700'>r/dataengineering</font></a> 
-            subreddit (a subreddit is a collection of posts).""", unsafe_allow_html=True)
+
+    st.markdown("""We are trying to predict when a post is **done**. A post is considered **done** when no new comments will be added to the post in the future.
+            The only posts we can consider **done** with 100% certainty are archived posts because once a post is archived, 
+            no more comments are allowed from that point forward on the archived post.
+            Posts are archived automatically after 6 months. 
+            However, most posts are usually **done** much sooner than 6 months (usually within a week), and this sooner point in time is what we are attempting to predict.""")
+
 
     st.markdown("""Choose a wait time that leads to an acceptable percentage of posts that are incorrectly labeled. For instance, if you choose a wait time of 4 days, and the percentage of incorrectly labeled posts is 1%, then this percentage may be an acceptable number for you.""")
     
@@ -310,19 +313,14 @@ def most_recent_comments():
 
 ## functions end here, title, sidebar setting and descriptions start here
 
-st.markdown("<h3 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h3>",unsafe_allow_html=True)
-st.write("")
-
 st.markdown("<h3 style='text-align: center;'>Analysis #1</h3>",unsafe_allow_html=True)
+
+st.markdown("""A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series).
+            The plot below shows the total number of comments per hour for the entire <a href = 'https://www.reddit.com/r/dataengineering/'> <font color='#FF5700'>r/dataengineering</font></a> 
+            subreddit (a subreddit is a collection of posts).""", unsafe_allow_html=True)
 
 
 timeline_chart()
-
-st.markdown("""We are trying to predict when a post is **done**. A post is considered **done** when no new comments will be added to the post in the future.
-            The only posts we can consider **done** with 100% certainty are archived posts because once a post is archived, 
-            no more comments are allowed from that point forward on the archived post.
-            Posts are archived automatically after 6 months. 
-            However, most posts are usually **done** much sooner than 6 months (usually within a week), and this sooner point in time is what we are attempting to predict.""")
 
 analyze_wait_time()
 
