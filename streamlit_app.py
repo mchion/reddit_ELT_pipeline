@@ -110,7 +110,7 @@ def timeline_chart():
 
 def analyze_wait_time():
     
-    st.markdown("<h3 style='text-align: center;'>APPROACH #1 </h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>Analysis #2 </h3>", unsafe_allow_html=True)
 
     st.markdown("<h3 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h3>",unsafe_allow_html=True)
     st.write("")
