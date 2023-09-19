@@ -111,7 +111,14 @@ def timeline_chart():
 def analyze_wait_time():
     
     st.markdown("<h3 style='text-align: center;'>APPROACH #1 </h3>", unsafe_allow_html=True)
+
+    st.markdown("<h3 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h3>",unsafe_allow_html=True)
+    st.write("")
     
+    st.markdown("""A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series).
+            The plot below shows the total number of comments per hour for the entire <a href = 'https://www.reddit.com/r/dataengineering/'> <font color='#FF5700'>r/dataengineering</font></a> 
+            subreddit (a subreddit is a collection of posts).""", unsafe_allow_html=True)
+
     st.markdown("""Choose a wait time that leads to an acceptable percentage of posts that are incorrectly labeled. For instance, if you choose a wait time of 4 days, and the percentage of incorrectly labeled posts is 1%, then this percentage may be an acceptable number for you.""")
     
     st.markdown("<h4 style='text-align: center;'>Try it out:</h4>", unsafe_allow_html=True)
@@ -308,9 +315,6 @@ st.write("")
 
 st.markdown("<h3 style='text-align: center;'>Analysis #1</h3>",unsafe_allow_html=True)
 
-st.markdown("""A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series).
-            The plot below shows the total number of comments per hour for the entire <a href = 'https://www.reddit.com/r/dataengineering/'> <font color='#FF5700'>r/dataengineering</font></a> 
-            subreddit (a subreddit is a collection of posts).""", unsafe_allow_html=True)
 
 timeline_chart()
 
