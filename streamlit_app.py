@@ -275,13 +275,7 @@ def analyze_wait_time():
 
                 st.plotly_chart(fig2, use_container_width=True)
     
-    st.write('')
-    st.write('')
-    st.markdown("<h3 style='text-align: center;'>APPROACH #2 </h3>", unsafe_allow_html=True)
-    st.write('')
-    st.markdown(f"""Use machine learning or perform 
-                a time series analysis on each individual post in order to predict when the last comment has been added. 
-                A data scientist or ML Engineer would need to investigate further since the focus of this project is mainly on the ETL of the data.""")
+
     
 def most_recent_comments():
 
@@ -312,7 +306,7 @@ def most_recent_comments():
 st.markdown("<h3 style='text-align: center;'>Towards Predicting When A Reddit Post Is \"Done\"</h3>",unsafe_allow_html=True)
 st.write("")
 
-st.markdown("<h3 style='text-align: center;'>Analysis #1"</h3>",unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>Analysis #1</h3>",unsafe_allow_html=True)
 
 st.markdown("""A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series).
             The plot below shows the total number of comments per hour for the entire <a href = 'https://www.reddit.com/r/dataengineering/'> <font color='#FF5700'>r/dataengineering</font></a> 
