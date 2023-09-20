@@ -32,7 +32,7 @@ If we were dealing with a more popular subreddit where the rate of comments beco
 
 ## Data Transformation and Loading
 
-- **Timestamp conversion**: Timestamps need to be properly formatted and have the correct time zone in order before being placed in the data warehouse. Our data schema specifically 
+- **Timestamp conversion**: Timestamps need to be properly formatted and have the correct time zone before being placed in the data warehouse.
 
 - **Deduplication**: We query our data warehouse for the latest timestamp and use this latest timestamp to only extract comments and posts that occurred after it. Although there are more thorough deduplication methods, the low frequency of user comments to this particular subreddit makes deduplication efforts easier. 
 
