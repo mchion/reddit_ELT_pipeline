@@ -8,10 +8,9 @@ A simple ELT data pipeline that extracts posts and comments from Reddit, transfo
 
 ## Data Source
 
-- **The Data We Want**: A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series). We want to collect these comments and the posts they belong to. 
+- **The Data**: A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series). We want to collect these comments and the posts they belong to. 
 
-- **Reddit API**: The Reddit API is well documented and heavily used by many other platorms. 
-For our purposes, one limitation of the API is its fixed extraction amount of 100 recent comments per request. In other words, it is not possible to extract any amount less than or greater than 100.
+- **Reddit API**: The Reddit API is well documented and heavily used by many other platorms. Although webscraping directly from the Reddit website is possible, it is generally frowned upon. One limitation of the API that we enountered is that is has fixed extraction amount of 100 recent comments per request. In other words, it is not possible to extract any amount less than or greater than 100.
 
 
 ## Data Ingestion
@@ -39,25 +38,27 @@ only extract from
 
 ## Data Warehouse
 
-Our data model is simple enough and our data analyzation usage is simple enough to not need a warehouse such as BigQuery. A simple RDBMS database like Cloud SQL would have also sufficed. However, BigQuery is user-friendly and enough to 
+Our data model and data analyzation usage is simple enough to not need a data warehouse as performant and scalable as BigQuery. A RDBMS database like Cloud SQL would have also sufficed. However, the ease-of-use and popularity of BigQuery, combined with tiered pricing, led us to choose it for this simple pipeline. 
 
-- **Data Model**: One-to-Many relationship between posts and comments. A post can be associated with many comments, but a comment can only be associated with one post.  
+- **Data Model**: Our data model consists of two tables - one for posts and another for comments - with a one-to-many relationship between posts and comments. In other words, a post can be associated with many comments, but a comment can only be associated with one post. Organizing the data this way leads to reduced 
+  
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/schema.svg?raw=true" alt="Data Model"/>
 </p>
 
 ## Data Visualization
 
-- **Dashboard using Streamlit**: To simulate analysis, we chose to build out a dashboard that shows comments per hour. It also builds out how many posts were considered "complete". Although there are plenty of dashboard tools (Tableu, PowerBI, etc.) one can use to build a dashboard, I chose [**Streamlit**](https://streamlit.io/) because it is an all Python, open-source framework that is easy to use and super customizable. Most importantly, it's free to deploy and share your dashboard to the public. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
+- **Dashboard using Streamlit**: [**Streamlit**](https://streamlit.io/) is an all Python, open-source framework that is easy to get started with, free to deploy on the web, and well documented. It is used by many data science professionals who need to display their data to an wide ranging audience. 
 
 - **Analysis # 1: Total comments per hour**:
+How many comments do people write per hour to the data engineering subreddit? This analysis aggregates hourly comment counts.  
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/dashboard1.png" width="800"/>
 </p>
 
 - **Analysis #2: Percentage of posts that meet time threshold**:\
 \
-Let's say you're an machine learning engineer that wants to determine when a post usually completes - in other words, when the last post was made. 
+Let's say you're an machine learning engineer that wants to determine when a post usually completes - in other words, when the last post was made. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
 
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/dashboard3.png" width="800"/>
