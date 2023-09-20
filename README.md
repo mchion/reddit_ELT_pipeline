@@ -8,10 +8,11 @@ A simple ELT data pipeline that extracts posts and comments from Reddit, transfo
 
 ## Data Source
 
-- **The Data**: We're trying to collect some minimal information about comments and posts from the [dataengineering](https://www.reddit.com/r/dataengineering/) subreddit. For posts, we want to collect the post ID, title, author, and timestamp. Similarly, for comments, we want to collect the comment ID, body of comment, author, and timestamp. Because our end goal is to view posts and comments as a sort of time stream, the timestamp for both is the essential piece of information we need. 
+- **The Data**: We're trying to collect some minimal information about comments and posts from the [dataengineering](https://www.reddit.com/r/dataengineering/) subreddit. For posts, we collect the post ID, title, author, and timestamp. Similarly, for comments, we collect the comment ID, body of comment, author, and timestamp. Because our end goal is to view posts and comments as a time stream of data, the timestamp for both posts and comments is the essential piece of information we need. 
 
-- **Reddit API**: The Reddit API is well documented and heavily used by many other platorms. Although webscraping directly from the Reddit website is possible, it is generally frowned upon. One limitation of the API that we enountered is that is has fixed extraction amount of 100 recent comments per request. In other words, it is not possible to extract any amount less than or greater than 100.
-
+- **Reddit API**: We can use the official Reddit API to retrieve the data that we need. Although webscraping directly from the Reddit website is possible, it is generally frowned upon and not really necessary in most cases since Reddit API is well documented and robust in terms of the granularity of data it can provide.\
+\
+One limitation of the API is that if we want the most recent comments posted, it can only send us 100 per request - no more, no less. This requires us then to de-duplicate the data that is sent to us to make sure that we are not adding duplicate data to our dataset.
 
 ## Data Ingestion
 
@@ -25,20 +26,21 @@ If we were dealing with a more popular subreddit where the rate of comments beco
 
 ## Staging Area
 
-- **Unprocessed**: Data is initially saved as JSON files in Cloud Storage. It is designated as "unprocessed" and stored in a storage bucket.
+- **Unprocessed**: When data is initially retrieved from the API, it is immediately saved as a JSON file in Cloud Storage. It is placed in a storage bucket designated as "unprocessed". By storing these raw files in a separate storage bucket, it makes it easier to see which files have not yet been processed in the event there is a failure. 
 
-- **Processed**: After being transformed, the original data is marked as being "processed" and moved into a storage bucket designated for processed files. In this way, we can keep track of which files have been processed without modifying the orignal data. 
+- **Processed**: After transforming the data to fit our needs, the JSON files are copied into a storage bucket designated for processed files and the original files are deleted. If this were a real-life production data pipeline, the original files would be moved to another storage bucket designated for processed raw files. This keeps our original data intact in case our we need to reprocess old data.
 
 ## Data Transformation and Loading
 
-- **Get only new comments**: Because of our extraction process, we loaded exactly 100 comments without regard to whether we have requested them before. This means that our data has duplicates. We read from our data warehouse the latest timestamp and use that to
-only extract from
+- **Timestamp conversion**: Timestamps need to be properly formatted and have the correct time zone in order before being placed in the data warehouse. Our data schema specifically 
 
-- **Load into BigQuery**: Loading data is simple enough. We just have to make sure it matches the data schema that we set up with posts going in one table and comments into the other. 
+- **Deduplication**: We query our data warehouse for the latest timestamp and use this latest timestamp to only extract comments and posts that occurred after it. Although there are more thorough deduplication methods, the low frequency of user comments to this particular subreddit makes deduplication efforts easier. 
+
+- **Load into BigQuery**: Loading data into BigQuery is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
 
 ## Data Warehouse
 
-Our data model and data analyzation usage is simple enough to not need a data warehouse as performant and scalable as BigQuery. A RDBMS database like Cloud SQL would have also sufficed. However, the ease-of-use and popularity of BigQuery, combined with tiered pricing, led us to choose it for this simple pipeline. 
+Our data model and data analyzation usage does not need a data warehouse as performant and scalable as BigQuery. It would have also sufficed to accept a slower (but more consistent) RDBMS database like Cloud SQL. However, the ease-of-use and popularity of BigQuery, combined with its generous tiered pricing for users with low usage, led us to choose it over over choices.  
 
 - **Data Model**: Our data model consists of two tables - one for posts and another for comments - with a one-to-many relationship between posts and comments. A post can be associated with many comments, but a comment can only be associated with one post. Organizing the data this way leads to reduced processing that needs to be done by analysts and also reduced redundancy. 
   
