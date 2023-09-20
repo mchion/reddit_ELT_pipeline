@@ -8,7 +8,7 @@ A simple ELT data pipeline that extracts posts and comments from Reddit, transfo
 
 ## Data Source
 
-- **The Data**: A post on Reddit can contain zero or more comments. We can view comments as a stream of data over time (a time series). We want to collect these comments and the posts they belong to. 
+- **The Data**: We're trying to collect some minimal information about comments and posts from the [dataengineering](https://www.reddit.com/r/dataengineering/) subreddit. For posts, we want to collect the post ID, title, author, and timestamp. Similarly, for comments, we want to collect the comment ID, body of comment, author, and timestamp. Because our end goal is to view posts and comments as a sort of time stream, the timestamp for both is the essential piece of information we need. 
 
 - **Reddit API**: The Reddit API is well documented and heavily used by many other platorms. Although webscraping directly from the Reddit website is possible, it is generally frowned upon. One limitation of the API that we enountered is that is has fixed extraction amount of 100 recent comments per request. In other words, it is not possible to extract any amount less than or greater than 100.
 
@@ -34,13 +34,13 @@ If we were dealing with a more popular subreddit where the rate of comments beco
 - **Get only new comments**: Because of our extraction process, we loaded exactly 100 comments without regard to whether we have requested them before. This means that our data has duplicates. We read from our data warehouse the latest timestamp and use that to
 only extract from
 
-- **Load into BigQuery**: Loading data is simple enough. We just have to make sure it matches the 
+- **Load into BigQuery**: Loading data is simple enough. We just have to make sure it matches the data schema that we set up with posts going in one table and comments into the other. 
 
 ## Data Warehouse
 
 Our data model and data analyzation usage is simple enough to not need a data warehouse as performant and scalable as BigQuery. A RDBMS database like Cloud SQL would have also sufficed. However, the ease-of-use and popularity of BigQuery, combined with tiered pricing, led us to choose it for this simple pipeline. 
 
-- **Data Model**: Our data model consists of two tables - one for posts and another for comments - with a one-to-many relationship between posts and comments. In other words, a post can be associated with many comments, but a comment can only be associated with one post. Organizing the data this way leads to reduced 
+- **Data Model**: Our data model consists of two tables - one for posts and another for comments - with a one-to-many relationship between posts and comments. A post can be associated with many comments, but a comment can only be associated with one post. Organizing the data this way leads to reduced processing that needs to be done by analysts and also reduced redundancy. 
   
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/schema.svg?raw=true" alt="Data Model"/>
@@ -67,7 +67,7 @@ Let's say you're an machine learning engineer that wants to determine when a pos
 
 ## Futher Directions and Considerations
 
-- **Machine Learning**: Using machine learning or time series analysis to find patterns in the rate of comments would complete this project. 
+- **Machine Learning**: In the second analysis, our goal was to find out the average amount of time it takes until users stop commenting on a post. Using historical data to try to predit when it was done is the realm of machine learning and data science. We can view comments as a stream of data over time (a time series).  
 
-- **Monitoring and Observability**: Because our app is entirely run on a cloud platorm, monitoring and observability are especially important since we cannot be expected to log in and monitor manually. I mention this because when I initially launched this app, it stopped after a month, and I was not able to detect it until a month after the stop. 
+- **Monitoring and Observability**: Because our app is entirely run on a cloud platorm, monitoring and observability are especially important since we cannot be expected to log in and monitor the data pipeline on a regular basis. This exact situation of failure occurring while not being alerted to occurred when the app stopped after a month of running due to a change in the API wrapper. 
 
