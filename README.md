@@ -12,8 +12,8 @@ A simple ELT data pipeline that extracts posts and comments from Reddit, transfo
 
 ## Data Ingestion
 
-- **Reddit API**: For the purposes of this project, the official Reddit API is robust enough in terms of the granularity of data it can provide such that we can retrieve the specific data we need about posts and comments without having to web scrape directly from the Reddit website. In order to make data extraction even easier, we used [PRAW](https://praw.readthedocs.io/en/stable/index.html), a python-based Reddit API wrapper.  
-
+- **Reddit API**: For the purposes of this project, the official Reddit API is robust enough in terms of the granularity of data it can provide such that we can retrieve the specific data we need about posts and comments without having to web scrape directly from the Reddit website. In order to make data extraction even easier, we used [PRAW](https://praw.readthedocs.io/en/stable/index.html), a python-based Reddit API wrapper. \
+\
 One limitation of the Reddit API is that it only sends back a fixed amount of recent comments per request. This requires us to de-duplicate the data sent back to us in order to make sure that we are not including previously received data with each new request. De-duplication is discussed in the data transformation section below. 
 
 - **Frequency**: We make hourly requests to the API for the data specified above. The process is run by a python app that is dockerized, placed into GCP's Artifact Registry, and then scheduled to run every hour using Cloud Run.\
