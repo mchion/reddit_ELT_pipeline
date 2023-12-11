@@ -34,7 +34,7 @@ If our project dealt with a more popular subreddit where the rate of comments be
 
 - **Deduplication**: In order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, the low frequency of user comments to this particular subreddit makes the likelihood of multiple comments posted at the same time very small. Since our project aggregates comments per hour, the impact a missing comment is negligible.\ 
 \
-- A more data intensive project that relied on ensuring that every comment was captured by our app would require more sophisticated de-duplication methods. One such way would be to relax the time requirement of the last timestamp, and thus allow duplicate data to exist in the database for a certain amount of time before a global deduplication is performed. This global deplication could be performed daily, let's say, and only involve data ingested in the past 24 hours so that its scope is limited and duplicate data can be removed in a timely way.   
+A more data intensive project that relied on ensuring that every comment was captured by our app would require more sophisticated de-duplication methods. One such way would be to relax the time requirement of the last timestamp, and thus allow duplicate data to exist in the database for a certain amount of time before a global deduplication is performed. This global deplication could be performed daily, let's say, and only involve data ingested in the past 24 hours so that its scope is limited and duplicate data can be removed in a timely way.   
 
 - **Load into data warehouse**: Loading data into the data warehoue (BigQuery) is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
 
@@ -50,10 +50,12 @@ If our project dealt with a more popular subreddit where the rate of comments be
 
 ## Data Visualization
 
-- **Dashboard using Streamlit**: [**Streamlit**](https://streamlit.io/) is an all Python, open-source framework that is easy to get started with, free to deploy on the web, and well documented. It is used by many data science professionals who need to display their data to an wide ranging audience. 
+- **Dashboard using Streamlit**: We used [**Streamlit**](https://streamlit.io/) as our dashboard. Streamlit is an all Python, open-source framework that is easy to get started with, free to deploy on the web, and well documented. It is used by many data science professionals who need to display their data to a wide ranging audience. 
 
-- **Analysis # 1: Total comments per hour**:
-How many comments do people write per hour to the data engineering subreddit? This analysis aggregates hourly comment counts.  
+## Possible Ways to Analyze Data
+
+- **Analysis # 1: Visualizing total comments per hour in real-time**:
+We can take advantage of the fact that our data is being updated hourly to create a "real-time" histogram with the hour on the x-axis and comment count on the y-axis. This type of visualization can be the base for further analysis. 
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/dashboard1.png" width="800"/>
 </p>
@@ -62,6 +64,8 @@ How many comments do people write per hour to the data engineering subreddit? Th
 \
 Let's say you're an machine learning engineer that wants to determine when a post usually completes - in other words, when the last post was made. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
 
+One way to start would be to find out the average amount of time it takes until users stop commenting on a post. 
+
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/dashboard3.png" width="800"/>
 </p>
@@ -69,7 +73,4 @@ Let's say you're an machine learning engineer that wants to determine when a pos
 
 ## Futher Directions and Considerations
 
-- **Machine Learning**: In the second analysis, our goal was to find out the average amount of time it takes until users stop commenting on a post. Using historical data to try to predit when it was done is the realm of machine learning and data science. We can view comments as a stream of data over time (a time series).  
-
-- **Monitoring and Observability**: Because our app is entirely run on a cloud platorm, monitoring and observability are especially important since we cannot be expected to log in and monitor the data pipeline on a regular basis. This exact situation of failure occurring while not being alerted to occurred when the app stopped after a month of running due to a change in the API wrapper. 
-
+- **Monitoring and Observability**: Because our app is entirely run on a cloud platorm, monitoring and observability are especially important since we cannot be expected to log in and monitor the data pipeline on a regular basis. In fact, our data pipeline did fail in the first month due to a change in the API wrapper and we thus had to retrieve historical comments and merge them with the newer data. 
