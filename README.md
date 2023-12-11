@@ -20,7 +20,7 @@ One limitation of the Reddit API is that it only sends back a fixed amount of re
 \
 The reason why we make hourly requests is due to the API's limitation of only being able to receive the most recent 100 comments per request. Wait to long, and more than 100 comments may be posted and our request would be unable to recapture those comments without significant de-duplication efforts. Because this particular subreddit has a relatively low, steady comment rate per hour, extracting **every hour** provides us with enough cushion to make sure there are less than 100 comments between extraction times. We also extract during an off-hour time (such as 17 minutes past the hour) in order to lessen the burden on the Reddit API during the more popular on-the-hour times.\
 \
-If we were dealing with a more popular subreddit where the rate of comments becomes similar to a near streaming data source, we would have to consider using a message queue like Kafka before possibly loading it into our storage. 
+If our project dealt with a more popular subreddit where the rate of comments becomes similar to a near streaming data source, we would have to consider using a message queue like Kafka before possibly loading it into our storage. 
 
 ## Staging Area
 
@@ -36,17 +36,17 @@ If we were dealing with a more popular subreddit where the rate of comments beco
 -
 - In order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, because this particular subreddit the app is extracting from is not usually very active, the likelihood is small that this would happen and it's not the end of the world if it does.
 
-- **Load into BigQuery**: Loading data into BigQuery is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
+- **Load into datawarehouse**: Loading data into the data warehoue (BigQuery) is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
 
-## Data Warehouse
+## Data Model and Data Warehouse 
 
-Our data model and data analyzation usage does not need a data warehouse as performant and scalable as BigQuery. It would have also sufficed to accept a slower (but more consistent) RDBMS database like Cloud SQL. However, the ease-of-use and popularity of BigQuery, combined with its generous tiered pricing for users with low usage, led us to choose it over over choices.  
-
-- **Data Model**: Our data model consists of two tables - one for posts and another for comments - with a one-to-many relationship between posts and comments. A post can be associated with many comments, but a comment can only be associated with one post. Organizing the data this way leads to reduced processing that needs to be done by analysts and also reduced redundancy. 
+- **Data Model**: Our data model consists of two tables - one for posts and another for comments - with a one-to-many relationship between posts and comments. A post can be associated with many comments, but a comment can only be associated with one post. Organizing the data this way leads to reduced processing that needs to be done by analysts and reduced redundancy of having multiple comments having the same post information. 
   
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/schema.svg?raw=true" alt="Data Model"/>
 </p>
+
+- **Data Warehouse**: Although our data model and data analyzation usage does not require a data warehouse as performant and scalable as BigQuery, the ease-of-use and popularity of BigQuery, combined with its generous tiered pricing for users with low usage, led us to choose it as our data warehouse option over over choices. We could have easily chosen a less performant but more consisent database such as Cloud SQL (a RDBMS database) if we had wanted without any noticable performance difference. 
 
 ## Data Visualization
 
