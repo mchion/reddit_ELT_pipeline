@@ -8,21 +8,19 @@ A simple ELT data pipeline that extracts posts and comments from Reddit, transfo
 
 ## Data Source
 
-- **The Data**: We're trying to collect some minimal information about comments and posts from the [dataengineering](https://www.reddit.com/r/dataengineering/) subreddit. For posts, we collect the post ID, title, author, and timestamp. Similarly, for comments, we collect the comment ID, body of comment, author, and timestamp. Because our end goal is to view posts and comments as a time stream of data, the timestamp for both posts and comments is the essential piece of information we need. 
-
-- **Reddit API**: We can use the official Reddit API to retrieve the data that we need. Although webscraping directly from the Reddit website is possible, it is generally frowned upon and not really necessary in most cases since Reddit API is well documented and robust in terms of the granularity of data it can provide.\
-\
-One limitation of the API is that if we want the most recent comments posted, it can only send us 100 per request - no more, no less. This requires us then to de-duplicate the data that is sent to us to make sure that we are not adding duplicate data to our dataset.
+- **The Data**: The two pieces of data that we are most interested in from the [dataengineering](https://www.reddit.com/r/dataengineering/) subreddit are comments and posts. For posts, we want to grab the post ID, title, author, and timestamp. Similarly, for comments, we want to grab the comment ID, body of comment, author, and timestamp. For both comments and posts, the timestamp is what will enable us to analyze this data in a time series manner.  
 
 ## Data Ingestion
 
-- **PRAW**: We used [PRAW](https://praw.readthedocs.io/en/stable/index.html), a python-based Reddit API wrapper, to make comment extraction easier. In order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, because this particular subreddit the app is extracting from is not usually very active, the likelihood is small that this would happen and it's not the end of the world if it does.
+- **Reddit API**: For the purposes of this project, the official Reddit API is robust enough in terms of the granularity of data it can provide such that we can retrieve the specific data we need about posts and comments without having to web scrape directly from the Reddit website. In order to make data extraction even easier, we used [PRAW](https://praw.readthedocs.io/en/stable/index.html), a python-based Reddit API wrapper.  
 
-- **Frequency**: We make hourly requests to the API for approximately 100 of the most recent comments from the specified subreddit. The process is run by a python app that is dockerized, placed into Artifact Registry, and then scheduled to run every hour using Cloud Run.\
+One limitation of the Reddit API is that it only sends back a fixed amount of recent comments per request. This requires us to de-duplicate the data sent back to us in order to make sure that we are not including previously received data with each new request. De-duplication is discussed in the data transformation section below. 
+
+- **Frequency**: We make hourly requests to the API for the data specified above. The process is run by a python app that is dockerized, placed into GCP's Artifact Registry, and then scheduled to run every hour using Cloud Run.\
 \
-In addition, being able to extract only 100 comments at time means that we need to extract pretty frequently because if we were to wait too long, more than 100 comments could have been posted by the time we extract, and we would be unable to retrieve those comments in the future. Because this subreddit has a relatively low, steady comment rate per hour, extracting **every hour** provides us with enough cushion to make sure there are less than 100 comments between extraction times.\
+The API's limitation of only being able to receive the most recent 100 comments per request is the reason why we make hourly requests. Wait to long, and more than 100 comments may be posted and our request would be unable to recapture those comments without significant de-duplication efforts. Because this particular subreddit has a relatively low, steady comment rate per hour, extracting **every hour** provides us with enough cushion to make sure there are less than 100 comments between extraction times. We also extract during an off-hour time (such as 17 minutes past the hour) in order to lessen the burden on the Reddit API during the more popular on-the-hour times.\
 \
-If we were dealing with a more popular subreddit where the rate of comments becomes almost like a constantly streaming data source, we would have to consider using a Kafka message queue before possibly loading it into an object storage like AWS S3. 
+If we were dealing with a more popular subreddit where the rate of comments becomes similar to a near streaming data source, we would have to consider using a message queue like Kafka before possibly loading it into our storage. 
 
 ## Staging Area
 
@@ -34,7 +32,9 @@ If we were dealing with a more popular subreddit where the rate of comments beco
 
 - **Timestamp conversion**: Timestamps need to be properly formatted and have the correct time zone before being placed in the data warehouse.
 
-- **Deduplication**: We query our data warehouse for the latest timestamp and use this latest timestamp to only extract comments and posts that occurred after it. Although there are more thorough deduplication methods, the low frequency of user comments to this particular subreddit makes deduplication efforts easier. 
+- **Deduplication**: We query our data warehouse for the latest timestamp and use this latest timestamp to only extract comments and posts that occurred after it. Although there are more thorough deduplication methods, the low frequency of user comments to this particular subreddit makes deduplication efforts easier.
+-
+- In order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, because this particular subreddit the app is extracting from is not usually very active, the likelihood is small that this would happen and it's not the end of the world if it does.
 
 - **Load into BigQuery**: Loading data into BigQuery is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
 
