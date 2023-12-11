@@ -24,19 +24,19 @@ If our project dealt with a more popular subreddit where the rate of comments be
 
 ## Staging Area
 
-- **Unprocessed**: When data is initially retrieved from the API, it is immediately saved as a JSON file in Cloud Storage. It is placed in a storage bucket designated as "unprocessed". By storing these raw files in a separate storage bucket, it makes it easier to see which files have not yet been processed in the event of a pipeline failure. 
+- **Unprocessed Data**: When data is initially retrieved from the API, it is immediately saved as a JSON file in Cloud Storage. It is placed in a storage bucket designated as "unprocessed". By storing these raw files in a separate storage bucket, it makes it easier to see which files have not yet been processed in the event of a pipeline failure. 
 
-- **Processed**: After transforming the data to fit our needs, the JSON files are copied into a storage bucket designated for processed files and the original files are deleted. If this were a real-life production data pipeline, the original files would be moved to another storage bucket designated for processed raw files. This keeps our original data intact in case our we need to reprocess old data.
+- **Processed Data**: After transforming the data to fit our needs, the JSON files are copied into a storage bucket designated for processed files and the original files are deleted. If this were a real-life production data pipeline, the original files would be moved to another storage bucket designated for processed raw files. This keeps our original data intact in case our we need to reprocess old data.
 
 ## Data Transformation and Loading
 
-- **Timestamp conversion**: Timestamps need to be properly formatted and have the correct time zone before being placed in the data warehouse.
+- **Timestamp Conversion**: Timestamps need to be properly formatted and have the correct time zone before being placed in the data warehouse.
 
 - **Deduplication**: In order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, the low frequency of user comments to this particular subreddit makes the likelihood of multiple comments posted at the same time very small. Since our project aggregates comments per hour, the impact a missing comment is negligible.\ 
 \
 A more data intensive project that relied on ensuring that every comment was captured by our app would require more sophisticated de-duplication methods. One such way would be to relax the time requirement of the last timestamp, and thus allow duplicate data to exist in the database for a certain amount of time before a global deduplication is performed. This global deplication could be performed daily, let's say, and only involve data ingested in the past 24 hours so that its scope is limited and duplicate data can be removed in a timely way.   
 
-- **Load into data warehouse**: Loading data into the data warehoue (BigQuery) is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
+- **Load into Data Warehouse**: Loading data into the data warehoue (BigQuery) is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
 
 ## Data Model and Data Warehouse 
 
@@ -54,22 +54,25 @@ A more data intensive project that relied on ensuring that every comment was cap
 
 ## Possible Ways to Analyze Data
 
-- **Analysis # 1: Visualizing total comments per hour in real-time**:
-We can take advantage of the fact that our data is being updated hourly to create a "real-time" histogram with the hour on the x-axis and comment count on the y-axis. This type of visualization can be the base for further analysis. 
+- **Analysis # 1: Visualizing total comments per hour in real-time** \
+We can take advantage of the fact that our data is being updated hourly to create a "real-time" histogram with the hour on the x-axis and comment count on the y-axis. This type of visualization can be the basis for further analysis. 
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/dashboard1.png" width="800"/>
 </p>
 
-- **Analysis #2: Percentage of posts that meet time threshold**:\
+- **Analysis #2: Percentage of posts that meet time threshold** \
+One question that a machine learning engineer might have is - How long does it take until a post has no more comments added to it from users?\
 \
-Let's say you're an machine learning engineer that wants to determine when a post usually completes - in other words, when the last post was made. The end goal is to try to determine when a Reddit post is "done", meaning when no new comments will be added to the post in the future.
+We know that posts are archived after 6 months, so there is a hard stop to the amount of time it takes until a post has no more comments. But a quick observation of posts tells us that users usually stop commenting after only a few weeks.\
+\
+One way to start would be to use historical data and find out the average amount of time it takes until users stop commenting on a post. Taking this a step further, we can plot the time it takes until there are no more posts on the x-axis and the **percentage** of posts that meet this threshold on the y-axis. This can be useful if we wanted to determine how long it takes until a certain percentage of posts are no longer active. 
 
-One way to start would be to find out the average amount of time it takes until users stop commenting on a post. 
+- **Analysis #2a: Towards predicting when a post will have no more comments**:\
+The real-time nature of our app gives machine learning engineers more of a playground to make predictions and test them against their model rather than using historical data as their training and test data. A real-time dashboard can also provide monitoring if the ML models start to deviate from expected predictions. 
 
 <p align="center">
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/dashboard3.png" width="800"/>
 </p>
-
 
 ## Futher Directions and Considerations
 
