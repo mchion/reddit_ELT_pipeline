@@ -32,11 +32,11 @@ If our project dealt with a more popular subreddit where the rate of comments be
 
 - **Timestamp conversion**: Timestamps need to be properly formatted and have the correct time zone before being placed in the data warehouse.
 
-- **Deduplication**: We query our data warehouse for the latest timestamp and use this latest timestamp to only extract comments and posts that occurred after it. Although there are more thorough deduplication methods, the low frequency of user comments to this particular subreddit makes deduplication efforts easier.
--
-- In order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, because this particular subreddit the app is extracting from is not usually very active, the likelihood is small that this would happen and it's not the end of the world if it does.
+- **Deduplication**: In order to prevent loading duplicate comments into the database, the app discards comments that have a timestamp older than or equal to the last timestamp in our database. Although this could potentially discard comments that have equal timestamps, the low frequency of user comments to this particular subreddit makes the likelihood of multiple comments posted at the same time very small. Since our project aggregates comments per hour, the impact a missing comment is negligible.\ 
+\
+- A more data intensive project that relied on ensuring that every comment was captured by our app would require more sophisticated de-duplication methods. One such way would be to relax the time requirement of the last timestamp, and thus allow duplicate data to exist in the database for a certain amount of time before a global deduplication is performed. This global deplication could be performed daily, let's say, and only involve data ingested in the past 24 hours so that its scope is limited and duplicate data can be removed in a timely way.   
 
-- **Load into datawarehouse**: Loading data into the data warehoue (BigQuery) is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
+- **Load into data warehouse**: Loading data into the data warehoue (BigQuery) is straightforward for the most part once the data has been properly transformed so that it matches the data schema. We load posts to one table and comments to another.  
 
 ## Data Model and Data Warehouse 
 
@@ -46,7 +46,7 @@ If our project dealt with a more popular subreddit where the rate of comments be
   <img src="https://github.com/mchion/reddit_ELT_pipeline/blob/main/images/schema.svg?raw=true" alt="Data Model"/>
 </p>
 
-- **Data Warehouse**: Although our data model and data analyzation usage does not require a data warehouse as performant and scalable as BigQuery, the ease-of-use and popularity of BigQuery, combined with its generous tiered pricing for users with low usage, led us to choose it as our data warehouse option over over choices. We could have easily chosen a less performant but more consisent database such as Cloud SQL (a RDBMS database) if we had wanted without any noticable performance difference. 
+- **Data Warehouse**: Although our data model and data analyzation usage does not require a data warehouse as performant and scalable as BigQuery, the ease-of-use and popularity of BigQuery, combined with its generous tiered pricing for users with low usage, led us to choose it over other options. We could have easily chosen a less performant but more consisent database such as Cloud SQL (a RDBMS database) if we had wanted without any noticable performance difference. 
 
 ## Data Visualization
 
